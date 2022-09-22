@@ -62,7 +62,6 @@ def main():
         for item in items:
             print(u'{0} ({1})'.format(item['name'], item['id']))
     except HttpError as error:
-        # TODO(developer) - Move a file to a designated directory (change parent)
         print(f'An error occurred: {error}')
 
 
