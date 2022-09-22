@@ -9,7 +9,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
+
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 
 def main():
@@ -44,7 +45,15 @@ def main():
             pageSize=10,
             fields="nextPageToken, files(id, name)")\
             .execute()
+
         items = results.get('files', [])
+
+        first_file_id = items[0]['id']
+        print('Gonna move this file')
+        print(str(first_file_id))
+
+        # Moves the file back to the base drive
+        service.files().update(fileId=first_file_id, removeParents='1yp5blq-DU3X7MHFafyKiRYd_nAdqSIEJ').execute()
 
         if not items:
             print('No files found.')
@@ -53,8 +62,9 @@ def main():
         for item in items:
             print(u'{0} ({1})'.format(item['name'], item['id']))
     except HttpError as error:
-        # TODO(developer) - Handle errors from drive API.
+        # TODO(developer) - Move a file to a designated directory (change parent)
         print(f'An error occurred: {error}')
+
 
 
 if __name__ == '__main__':
