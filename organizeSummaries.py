@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import os.path
 
+import re
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -21,20 +23,20 @@ def main():
 
         # Call the Drive v3 API
         # TODO: List summaries in drive with dd/mm/yyyy daily summary format to "TTF West End Daily Summaries" dir
-
-        results = service.files().list(
-            q="'1yp5blq-DU3X7MHFafyKiRYd_nAdqSIEJ' in parents",
-            pageSize=10,
-            fields="nextPageToken, files(id, name)")\
-            .execute()
-
-        items = results.get('files', [])
+        #
+        # results = service.files().list(
+        #     q="'1yp5blq-DU3X7MHFafyKiRYd_nAdqSIEJ' in parents",
+        #     pageSize=10,
+        #     fields="nextPageToken, files(id, name)")\
+        #     .execute()
+        #
+        # items = results.get('files', [])
 
         ## Experimenting with labels
 
         print('yes')
 
-        list_labels(items, service)
+        create_month_folders(service)
 
         print('yeah')
 
@@ -67,6 +69,66 @@ def list_labels(items_list, service):
     for field in label_fields:
         print(f"{field}")
 
+
+def create_month_folders(service):
+
+    import calendar as cal
+
+    folder_id_top = '1yp5blq-DU3X7MHFafyKiRYd_nAdqSIEJ'
+    folder_id_2021 = '1kqNHQCaJhhCPGepdmKTw1-B8WwRYqBi0'
+    folder_id_2022 = '1cpzBmIPArHixCQLNuIYe7nNTIhoLkC7K'
+
+    month_dir_ids = []
+    month_dir_ids_2021 = []
+    month_dir_ids_2022 = []
+
+
+    # List of month names
+    month_list = list(cal.month_name)
+
+    # Make month-named folders for 2022
+    for i in range(1, 13):
+        try:
+            file_metadata = {
+                'name': f'{month_list[i]}',
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+
+            fold = service.files().create(body=file_metadata, fields='id').execute()
+
+            service.files().update(
+                fileId=fold.get('id'), addParents=f'{folder_id_2022}'
+            ).execute()
+
+            month_dir_ids_2022.append(fold.get('id'))
+
+            print(fold.get('id'))
+
+        except HttpError as error:
+            print(F'An error occurred: {error}')
+            fold = None
+
+    # Make month-named folders for 2021
+    for i in range(6, 13):
+        try:
+            file_metadata = {
+                'name': f'{month_list[i]}',
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+
+            fold = service.files().create(body=file_metadata, fields='id').execute()
+
+            service.files().update(
+                fileId=fold.get('id'), addParents=f'{folder_id_2021}'
+            ).execute()
+
+            month_dir_ids_2021.append(fold.get('id'))
+
+            print(fold.get('id'))
+
+        except HttpError as error:
+            print(F'An error occurred: {error}')
+            fold = None
 
 
 
