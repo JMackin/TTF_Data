@@ -36,7 +36,8 @@ def main():
 
         print('yes')
 
-        create_month_folders(service)
+        # create_month_folders(service)
+        org_files_by_month(service)
 
         print('yeah')
 
@@ -56,6 +57,60 @@ def main():
 
     except HttpError as error:
         print(f'An error occurred: {error}')
+
+
+def org_files_by_month(service):
+
+    import calendar as cal
+
+    ## PART 1: Make Dictionary of dictionaries mapping months to file IDs
+
+    count = 2
+    years = {21: {}, 22: {}}
+    mnth = None
+
+    with open('folder_ids_month.txt', 'r') as f:
+        for line in f.readlines():
+
+            if re.search('202[0-9]', line):
+                count = 3
+                date = line[2:4]
+
+            if count % 2 == 0 and count != 3:
+                mnth = line
+                print(f'{mnth}triggered\n')
+
+            elif count % 2 != 0 and count > 2:
+                if mnth:
+                    years[int(date)].update({mnth: line})
+            else:
+                print(f'This line -> {line} <-\n')
+
+            count = count + 1
+
+    print('Success Part 1\n')
+    for x in years.keys():
+        print(x)
+        for y in years.get(x).keys():
+            print(y)
+            print((years.get(x)).get(y))
+
+
+    ## PART 2 Move files to respective folders
+
+    short_to_month = {'Jan': 'January', 'Feb': 'February', 'Mar': 'March',
+                      'Apr': 'April', 'May': 'May', 'Jun': 'June', 'Jul': 'July',
+                      'Aug': 'August', 'Sep': 'September', 'Oct': 'October',
+                      'Nov': 'November', 'Dec': 'December'}
+
+    month_to_short = {'January': 'Jan', 'February': 'Feb', 'March': 'Mar',
+                      'April': 'Apr', 'May': 'May', 'June': 'Jun', 'July': 'Jul',
+                      'August': 'Aug', 'September': 'Sep', 'October': 'Oct',
+                      'November': 'Nov', 'December': 'Dec'}
+
+    month_list = list(cal.month_name)
+
+
 
 
 def list_labels(items_list, service):
@@ -107,6 +162,7 @@ def create_month_folders(service):
         except HttpError as error:
             print(F'An error occurred: {error}')
             fold = None
+
 
     # Make month-named folders for 2021
     for i in range(6, 13):
