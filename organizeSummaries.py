@@ -92,16 +92,15 @@ def org_files_by_month(service):
     for x in years.keys():
         print(x)
         for y in years.get(x).keys():
-            print(y)
-            print((years.get(x)).get(y))
+         print(f'>> {y[:-1]} and {((years.get(x)).get(y))[:-1]}')
 
 
     ## PART 2 Move files to respective folders
 
-    short_to_month = {'Jan': 'January', 'Feb': 'February', 'Mar': 'March',
-                      'Apr': 'April', 'May': 'May', 'Jun': 'June', 'Jul': 'July',
-                      'Aug': 'August', 'Sep': 'September', 'Oct': 'October',
-                      'Nov': 'November', 'Dec': 'December'}
+    # short_to_month = {'Jan': 'January', 'Feb': 'February', 'Mar': 'March',
+    #                   'Apr': 'April', 'May': 'May', 'Jun': 'June', 'Jul': 'July',
+    #                   'Aug': 'August', 'Sep': 'September', 'Oct': 'October',
+    #                   'Nov': 'November', 'Dec': 'December'}
 
     month_to_short = {'January': 'Jan', 'February': 'Feb', 'March': 'Mar',
                       'April': 'Apr', 'May': 'May', 'June': 'Jun', 'July': 'Jul',
@@ -109,6 +108,68 @@ def org_files_by_month(service):
                       'November': 'Nov', 'December': 'Dec'}
 
     month_list = list(cal.month_name)
+
+    dir_id = input("Enter Folder Id to move files from > ")
+
+    files_2b_moved = service.files().list(
+        q=f"'{dir_id}' in parents",
+        fields="nextPageToken, files(id, name)")\
+        .execute()
+
+    items = files_2b_moved.get('files', [])
+
+    print('Got files...\n')
+
+    for item in items:
+        if re.search('((1[0-2])|(0[1-9]))/[0-3][0-9]/202[0-9] daily summary', item['name']):
+
+            file_month_num = int(item['name'][:2])
+            file_year = int(item['name'][8:10])
+            file_month = f'{month_to_short[month_list[file_month_num]]}\n'
+
+            month_dir = str(years.get(file_year).get(file_month))[:-1]
+
+            # [print(i[:-1]) for i in years.get(file_year).keys()]
+
+            print(f'{file_month}, {file_year}')
+            print(f'>>>>>{month_dir}')
+
+            service.files().update(
+                fileId=item['id'], removeParents=f'{dir_id}'
+            ).execute()
+
+            service.files().update(
+                fileId=item['id'], addParents=f'{month_dir}'
+            ).execute()
+
+            print(f'{item["name"]}')
+
+        elif re.search('Daily Summary ((1[0-2])|([1-9]))/(([1-3][0-9])|([1-9]))/2[0-2]', item['name']):
+
+            file_date = (((item['name'])[14:]).split('/'))
+            file_month_num = int(file_date[0])
+            file_year = int(file_date[2])
+            file_month = f'{month_to_short[month_list[file_month_num]]}\n'
+
+            month_dir = str(years.get(file_year).get(file_month))[:-1]
+
+            print(f'{file_month}, {file_year}')
+
+
+
+            service.files().update(
+                fileId=item['id'], removeParents=f'{dir_id}'
+            ).execute()
+
+            service.files().update(
+                fileId=item['id'], addParents=f'{month_dir}'
+            ).execute()
+
+            print(f'{item["name"]}')
+
+        else:
+            print('Not..')
+            continue
 
 
 
