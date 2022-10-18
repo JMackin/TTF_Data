@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import io
 import os.path
 
 import re
@@ -9,6 +10,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaIoBaseDownload
 
 # If modifying these scopes, delete the file token.json.
 
@@ -36,8 +38,10 @@ def main():
 
         print('yes')
 
+        print(get_body(service, '1h2sLodnh-cUpF4aAwBEn599htdvP0MzPtyyqQtuPYzk'))
+
         # create_month_folders(service)
-        org_files_by_month(service)
+        # org_files_by_month(service)
 
         print('yeah')
 
@@ -58,6 +62,20 @@ def main():
     except HttpError as error:
         print(f'An error occurred: {error}')
 
+
+def get_body(service, file_id):
+
+    req = service.files().export_media(fileId=file_id,
+                                     mimeType='text/plain')
+    file = io.BytesIO()
+    downloader = MediaIoBaseDownload(file, req)
+    done = False
+
+    while done is False:
+        status, done = downloader.next_chunk()
+        print(F'Download {int(status.progress() *100)}.')
+
+    return file.getvalue()
 
 def org_files_by_month(service):
 
@@ -260,7 +278,7 @@ def make_creds():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'TTFprodwe_creds.json', SCOPES)
+                'ttfcreds.json', SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
