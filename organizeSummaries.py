@@ -3,6 +3,8 @@ from __future__ import print_function
 import io
 import os.path
 
+import pandas as pd
+
 import re
 
 from google.auth.transport.requests import Request
@@ -38,7 +40,9 @@ def main():
 
         print('yes')
 
-        print(get_body(service, '1h2sLodnh-cUpF4aAwBEn599htdvP0MzPtyyqQtuPYzk'))
+        body = get_body(service, '1Mo1syVsDzkQIn1NEE45r_mRL9VtN_Xnic5Kxo4Ta6XE')
+
+        make_df(body)
 
         # create_month_folders(service)
         # org_files_by_month(service)
@@ -61,6 +65,33 @@ def main():
 
     except HttpError as error:
         print(f'An error occurred: {error}')
+
+
+def make_df(body):
+
+
+    entries = []
+    sub_entries = []
+    dict_list = [{}]
+
+    str_arr = body.split(b'\n\r')
+
+    for i in str_arr:
+        if len(i) > 1:
+            entries.append(i)
+
+
+    for i in entries:
+        print(i)
+
+
+    for i in entries:
+        sub_entries.append(i.split(b'\n'))
+
+    for i in sub_entries:
+
+        for j in i:
+            print(j)
 
 
 def get_body(service, file_id):
