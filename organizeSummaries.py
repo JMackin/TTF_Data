@@ -130,14 +130,13 @@ def make_df(body):
         for j in i:
             if j[2] != b'-':
                 product = b''.join(j)
-                product = product.decode()
+                product = product.decode().strip('\r')
                 name_list = []
                 task_list = []
                 unit_list = []
                 time_list = []
                 task_str = ''
                 time_str = ''
-                print(f'product is: {product}')
             else:
                 for k in j:
 
@@ -176,7 +175,7 @@ def make_df(body):
                 if {product: [name_list, task_list, unit_list, time_list]} not in prod_list:
                     prod_list.append({product: [name_list, task_list, unit_list, time_list]})
 
-        task_entries[w] = prod_list
+        task_entries[w.strip('\r')] = prod_list
 
         # end for j in i
 
