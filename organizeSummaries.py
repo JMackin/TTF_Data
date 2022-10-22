@@ -72,7 +72,6 @@ def make_df(body):
 
     entries = []
     sub_entries = []
-    dict_list = [{}]
 
     str_arr = body.split(b'\n\r')
 
@@ -80,10 +79,8 @@ def make_df(body):
         if len(i) > 1:
             entries.append(i)
 
-
     for i in entries:
         print(i)
-
 
     for i in entries:
         sub_entries.append(i.split(b'\n'))
