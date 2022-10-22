@@ -89,6 +89,7 @@ def make_df(body):
     at_trimming = False
     line_count = True
     prod_tasks = {}
+    task_entries_list = []
     task_entries = {}
     split_strings = []
 
@@ -122,17 +123,21 @@ def make_df(body):
     el_cnt = 0
 
     [print(i) for i in prod_tasks.values()]
+    print('----')
 
-    for i in prod_tasks.values():
+    for w, i in prod_tasks.items():
+        prod_list = []
         for j in i:
-            if j[0] != b'':
-                product = ''.join(j[0].decode())
+            if j[2] != b'-':
+                product = b''.join(j)
+                product = product.decode()
                 name_list = []
                 task_list = []
                 unit_list = []
                 time_list = []
                 task_str = ''
                 time_str = ''
+                print(f'product is: {product}')
             else:
                 for k in j:
 
@@ -147,7 +152,7 @@ def make_df(body):
                         continue
 
                     elif task_flag == True:
-                        if re.search('\d', k.decode()) and (k != b'(2-Packs)'):
+                        if re.search('\d', k.decode()) and not re.search('-', k.decode()):
                             task_list.append(task_str)
                             unit_list.append(k.decode())
                             task_flag = False
@@ -168,11 +173,15 @@ def make_df(body):
                             break
                         el_cnt += 1
 
-        prod_list.append({product: [name_list, task_list, unit_list, time_list]})
+                if {product: [name_list, task_list, unit_list, time_list]} not in prod_list:
+                    prod_list.append({product: [name_list, task_list, unit_list, time_list]})
+
+        task_entries[w] = prod_list
 
         # end for j in i
 
-    [print(i) for i in prod_list]
+    #[print(i) for i in prod_list]
+    [print(i) for i in task_entries.items()]
 
 
 
