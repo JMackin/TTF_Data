@@ -69,26 +69,111 @@ def main():
 
 def make_df(body):
 
+#   Info array:
+#       0           1       2       3       4
+#   | Prod_type | Worker | Task | # units | Time |
+#
+#   key:Batch Id
+#   value: info
+#   [ {BID: [4]}, {BID: [4]} ]
 
+    name_list = []
+    task_list = []
+    unit_list = []
+    time_list = []
+    task_str = ''
+    time_str = ''
     entries = []
     sub_entries = []
+    prod_list = []
+    at_trimming = False
+    line_count = True
+    prod_tasks = {}
+    task_entries = {}
+    split_strings = []
 
     str_arr = body.split(b'\n\r')
+
 
     for i in str_arr:
         if len(i) > 1:
             entries.append(i)
 
     for i in entries:
-        print(i)
-
-    for i in entries:
         sub_entries.append(i.split(b'\n'))
 
     for i in sub_entries:
 
+        if line_count == True:
+            today_date = i[0].decode()[-2:-11]
+            line_count = False
+            continue
+        else:
+            split_strings = [x.split(b' ') for x in i[2:]]
+            prod_tasks[i[1].decode()] = split_strings
+
+            if re.search('________________', i[1].decode()):
+                at_trimming = True
+                break
+
+    name_flag = False
+    task_flag = False
+    time_flag = False
+    el_cnt = 0
+
+    [print(i) for i in prod_tasks.values()]
+
+    for i in prod_tasks.values():
         for j in i:
-            print(j)
+            if j[0] != b'':
+                product = ''.join(j[0].decode())
+                name_list = []
+                task_list = []
+                unit_list = []
+                time_list = []
+                task_str = ''
+                time_str = ''
+            else:
+                for k in j:
+
+                    if k == b'-':
+                        name_flag = True
+                        continue
+
+                    if name_flag == True:
+                        name_list.append(k.decode())
+                        task_flag = True
+                        name_flag = False
+                        continue
+
+                    elif task_flag == True:
+                        if re.search('\d', k.decode()) and (k != b'(2-Packs)'):
+                            task_list.append(task_str)
+                            unit_list.append(k.decode())
+                            task_flag = False
+                            el_cnt = 1
+                            time_flag = True
+                            task_str = ''
+                            continue
+                        else:
+                            task_str += k.decode()
+
+                    elif time_flag == True:
+                        if el_cnt == 3:
+                            time_str = k.decode()
+                        elif el_cnt == 6:
+                            time_str = time_str.join(f':{k.decode()}')
+                            time_list.append(time_str)
+                            time_flag = False
+                            break
+                        el_cnt += 1
+
+        prod_list.append({product: [name_list, task_list, unit_list, time_list]})
+
+        # end for j in i
+
+    [print(i) for i in prod_list]
+
 
 
 def get_body(service, file_id):
