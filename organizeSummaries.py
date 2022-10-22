@@ -42,7 +42,9 @@ def main():
 
         body = get_body(service, '1Mo1syVsDzkQIn1NEE45r_mRL9VtN_Xnic5Kxo4Ta6XE')
 
-        make_df(body)
+        data = extract_data(body)
+
+        make_df(data)
 
         # create_month_folders(service)
         # org_files_by_month(service)
@@ -67,7 +69,44 @@ def main():
         print(f'An error occurred: {error}')
 
 
-def make_df(body):
+def make_df(data):
+
+    df_list = []
+
+    for k, v in data.items():
+        #print(data[k])
+        for vv in data[k]:
+            for key in vv.keys():
+                # [print(key) for x in range(0, len(vv[key][0]))]
+                reformed_data = {
+                    'Product': [key for x in range(0, len(vv[key][0]))],
+                    'Name': vv[key][0],
+                    'Task': vv[key][1],
+                    'Units': vv[key][2],
+                    'Time': vv[key][3]
+                }
+                df_list.append(pd.DataFrame.from_dict(reformed_data))
+
+        if len(df_list) > 0:
+            combined_df = pd.concat(df_list)
+            df_list = []
+
+        print(pd.DataFrame.from_dict(combined_df))
+        print('-------')
+
+
+    # for k, v in data.items():
+    #     for kk, i in v:
+    #         reformed_data ={
+    #             'Product': [i for x in len(i[kk][0])],
+    #             'Name': i[kk][0],
+    #             'Task': i[kk][1],
+    #             'Units': i[kk][2],
+    #             'Time': i[kk][3]
+    #         }
+    #         pd.DataFrame.from_dict(reformed_data)
+
+def extract_data(body):
 
 #   Info array:
 #       0           1       2       3       4
@@ -166,7 +205,7 @@ def make_df(body):
                         if el_cnt == 3:
                             time_str = k.decode()
                         elif el_cnt == 6:
-                            time_str = time_str.join(f':{k.decode()}')
+                            time_str = time_str + ':' + k.decode()
                             time_list.append(time_str)
                             time_flag = False
                             break
@@ -181,6 +220,8 @@ def make_df(body):
 
     #[print(i) for i in prod_list]
     [print(i) for i in task_entries.items()]
+
+    return task_entries
 
 
 
