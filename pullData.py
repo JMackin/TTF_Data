@@ -21,6 +21,7 @@ def main():
     count = 2
     years = {21: {}, 22: {}}
     mnth = None
+    total_df_list = []
 
     month_to_short = {'January': 'Jan', 'February': 'Feb', 'March': 'Mar',
                       'April': 'Apr', 'May': 'May', 'June': 'Jun', 'July': 'Jul',
@@ -62,14 +63,19 @@ def main():
 
             if y != '\n':
                 month = short_to_month[y[:-1]]
+                year = str(x)
 
             if x == 22 and count > 5:
-                read_extract(folder_id, month)
+                out_df = read_extract(folder_id, month, year)
+                total_df_list.append(out_df)
             count = count + 1
 
+    total_df = pd.concat(total_df_list, ignore_index=True)
+    total_df.to_csv('./record_data/total_data.csv')
 
-def read_extract(folder_id, month):
+def read_extract(folder_id, month, year):
     creds = make_creds()
+    big_df_list = []
 
     try:
         service = build('drive', 'v3', credentials=creds)
@@ -97,7 +103,8 @@ def read_extract(folder_id, month):
             try:
                 body = get_body(service, item['id'])
                 data = extract_data(body)
-                make_df(data[0], data[1], month)
+                out_df = make_df(data[0], data[1], month, year)
+                big_df_list.append(out_df)
                 print('...')
             except:
                 item_name = {item['name']}
@@ -120,16 +127,21 @@ def read_extract(folder_id, month):
 
         print('yeah')
 
+        big_df = pd.concat(big_df_list, ignore_index=True)
+        big_df.to_csv(f'./record_data/{year}/{month}/total_{month+year}data.csv')
+        return big_df
+
+
     except HttpError as error:
         print(f'An error occurred: {error}')
 
-def make_df(data, today_date, month):
+def make_df(data, today_date, month, year):
 
     df_list = []
 
     out_dir_name = today_date.replace('/', '_')
     print(out_dir_name)
-    out_path = './record_data/' + month + '/' + out_dir_name.strip('\ufeff')
+    out_path = './record_data/' + year + '/' + month + '/' + out_dir_name.strip('\ufeff')
 
     if not os.path.exists(out_path):
         os.makedirs(out_path)
@@ -164,10 +176,7 @@ def make_df(data, today_date, month):
         out_df = pd.DataFrame.from_dict(combined_df)
         out_df.to_csv(f'{out_path}/{filename}.csv')
 
-
-
-        print('-------')
-
+        return out_df
 
 def extract_data(body):
 
