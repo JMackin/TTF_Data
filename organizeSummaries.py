@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import io
-import os.path
+import os
 
 import pandas as pd
 
@@ -26,30 +26,47 @@ def main():
         service = build('drive', 'v3', credentials=creds)
 
         # Call the Drive v3 API
-        # TODO: List summaries in drive with dd/mm/yyyy daily summary format to "TTF West End Daily Summaries" dir
         #
-        # results = service.files().list(
-        #     q="'1yp5blq-DU3X7MHFafyKiRYd_nAdqSIEJ' in parents",
-        #     pageSize=10,
-        #     fields="nextPageToken, files(id, name)")\
-        #     .execute()
-        #
-        # items = results.get('files', [])
 
-        ## Experimenting with labels
+        folder_id = input("Enter file ID: ")
+
+        results = service.files().list(
+            q=f"'{folder_id}' in parents",
+            pageSize=10,
+            fields="nextPageToken, files(id, name)")\
+            .execute()
+
+        items = results.get('files', [])
 
         print('yes')
 
-        body = get_body(service, '1Mo1syVsDzkQIn1NEE45r_mRL9VtN_Xnic5Kxo4Ta6XE')
+        if not items:
+            print('No files found.')
+            return
 
-        data = extract_data(body)
+        failed_items = []
 
-        make_df(data[0], data[1])
+        for item in items:
+            print(u'{0} ({1})'.format(item['name'], item['id']))
+            try:
+                body = get_body(service, item['id'])
+                data = extract_data(body)
+                make_df(data[0], data[1])
+                print('...')
+            except:
+                item_name = {item['name']}
+                failed_items.append(item_name)
+                print(f'{item_name} didnt work')
+                continue
 
         # create_month_folders(service)
         # org_files_by_month(service)
 
+        print("These files failed: ")
+        [print(i) for i in failed_items]
+
         print('yeah')
+
 
     #     first_file_id = items[0]['id']
     #     print('Gonna move this file')
@@ -58,12 +75,7 @@ def main():
     #     # Moves the file back to the base drive
     #     service.files().update(fileId=first_file_id, removeParents='1yp5blq-DU3X7MHFafyKiRYd_nAdqSIEJ').execute()
     #
-    #     if not items:
-    #         print('No files found.')
-    #         return
-    #     print('Files:')
-    #     for item in items:
-    #         print(u'{0} ({1})'.format(item['name'], item['id']))
+
 
     except HttpError as error:
         print(f'An error occurred: {error}')
@@ -73,8 +85,18 @@ def make_df(data, today_date):
 
     df_list = []
 
+    out_dir_name = today_date.replace('/', '_')
+    print(out_dir_name)
+    out_path = f'./record_data/{out_dir_name}'
+
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
+
+    print(out_dir_name)
+
     for k, v in data.items():
         #print(data[k])
+        filename = k
         for vv in data[k]:
             for key in vv.keys():
                 # [print(key) for x in range(0, len(vv[key][0]))]
@@ -89,6 +111,7 @@ def make_df(data, today_date):
                     'Date': [today_date for x in range(0, len(vv[key][0]))]
 
                 }
+
                 df_list.append(pd.DataFrame.from_dict(reformed_data))
 
         if len(df_list) > 0:
@@ -96,6 +119,11 @@ def make_df(data, today_date):
             df_list = []
 
         print(pd.DataFrame.from_dict(combined_df))
+        out_df = pd.DataFrame.from_dict(combined_df)
+        out_df.to_csv(f'{out_path}/{filename}.csv')
+
+
+
         print('-------')
 
 
