@@ -157,8 +157,6 @@ def org_files_by_month(service):
             continue
 
 
-
-
 def list_labels(items_list, service):
 
     first_file_id = items_list[0]['id']
@@ -231,8 +229,6 @@ def create_month_folders(service):
         except HttpError as error:
             print(F'An error occurred: {error}')
             fold = None
-
-
 
 
 def make_creds():

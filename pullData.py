@@ -3,7 +3,7 @@ from __future__ import print_function
 import io
 import os
 import re
-
+import calendar as cal
 import pandas as pd
 
 from google.auth.transport.requests import Request
@@ -15,8 +15,60 @@ from googleapiclient.http import MediaIoBaseDownload
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
+
 def main():
 
+    count = 2
+    years = {21: {}, 22: {}}
+    mnth = None
+
+    month_to_short = {'January': 'Jan', 'February': 'Feb', 'March': 'Mar',
+                      'April': 'Apr', 'May': 'May', 'June': 'Jun', 'July': 'Jul',
+                      'August': 'Aug', 'September': 'Sep', 'October': 'Oct',
+                      'November': 'Nov', 'December': 'Dec'}
+    short_to_month = {'Jan': 'January', 'Feb': 'February', 'Mar': 'March',
+                      'Apr': 'April', 'May': 'May', 'Jun': 'June', 'Jul': 'July',
+                      'Aug': 'August', 'Sep': 'September', 'Oct': 'October',
+                      'Nov': 'November', 'Dec': 'December'}
+    month_list = list(cal.month_name)
+
+    with open('folder_ids_month.txt', 'r') as f:
+
+        for line in f.readlines():
+
+            if re.search('202[0-9]', line):
+                count = 3
+                date = line[2:4]
+
+            if count % 2 == 0 and count != 3:
+                mnth = line
+                print(f'{mnth}triggered\n')
+
+            elif count % 2 != 0 and count > 2:
+                if mnth:
+                    years[int(date)].update({mnth: line})
+            else:
+                print(f'This line -> {line} <-\n')
+
+            count = count + 1
+
+    for x in years.keys():
+        print(x)
+        count = 1
+        for y in years.get(x).keys():
+            # print((years.get(x)).get(y))
+            # print(f'>> {y[:-1]} and {((years.get(x)).get(y))[:-1]}')
+            folder_id = (years.get(x)).get(y)[:-1]
+
+            if y != '\n':
+                month = short_to_month[y[:-1]]
+
+            if x == 22 and count > 5:
+                read_extract(folder_id, month)
+            count = count + 1
+
+
+def read_extract(folder_id, month):
     creds = make_creds()
 
     try:
@@ -24,8 +76,6 @@ def main():
 
         # Call the Drive v3 API
         #
-
-        folder_id = input("Enter file ID: ")
 
         results = service.files().list(
             q=f"'{folder_id}' in parents",
@@ -47,7 +97,7 @@ def main():
             try:
                 body = get_body(service, item['id'])
                 data = extract_data(body)
-                make_df(data[0], data[1])
+                make_df(data[0], data[1], month)
                 print('...')
             except:
                 item_name = {item['name']}
@@ -61,19 +111,25 @@ def main():
         print("These files failed: ")
         [print(i) for i in failed_items]
 
+        with open('failed_files.txt', 'a+') as ff:
+            failedfiles = ff.read().splitlines()
+
+            for file in failed_items:
+                if file not in failedfiles:
+                    ff.write(str(file)+'\n')
+
         print('yeah')
 
     except HttpError as error:
         print(f'An error occurred: {error}')
 
-
-def make_df(data, today_date):
+def make_df(data, today_date, month):
 
     df_list = []
 
     out_dir_name = today_date.replace('/', '_')
     print(out_dir_name)
-    out_path = f'./record_data/{out_dir_name}'
+    out_path = './record_data/' + month + '/' + out_dir_name.strip('\ufeff')
 
     if not os.path.exists(out_path):
         os.makedirs(out_path)
@@ -237,6 +293,7 @@ def extract_data(body):
 
     return [task_entries, today_date]
 
+
 def get_body(service, file_id):
 
     req = service.files().export_media(fileId=file_id,
@@ -250,6 +307,7 @@ def get_body(service, file_id):
         print(F'Download {int(status.progress() *100)}.')
 
     return file.getvalue()
+
 
 def make_creds():
     creds = None
@@ -268,6 +326,7 @@ def make_creds():
             token.write(creds.to_json())
 
     return creds
+
 
 if __name__ == '__main__':
     main()
