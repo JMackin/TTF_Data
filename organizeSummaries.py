@@ -44,7 +44,7 @@ def main():
 
         data = extract_data(body)
 
-        make_df(data)
+        make_df(data[0], data[1])
 
         # create_month_folders(service)
         # org_files_by_month(service)
@@ -69,7 +69,7 @@ def main():
         print(f'An error occurred: {error}')
 
 
-def make_df(data):
+def make_df(data, today_date):
 
     df_list = []
 
@@ -79,11 +79,15 @@ def make_df(data):
             for key in vv.keys():
                 # [print(key) for x in range(0, len(vv[key][0]))]
                 reformed_data = {
-                    'Product': [key for x in range(0, len(vv[key][0]))],
+                    'BatchID': [k for x in range(0, len(vv[key][0]))],
+                    'Strain': [key.split(',', 1)[0] for x in range(0, len(vv[key][0]))],
+                    'Product': [key.split(',', 1)[1] for x in range(0, len(vv[key][0]))],
                     'Name': vv[key][0],
                     'Task': vv[key][1],
                     'Units': vv[key][2],
-                    'Time': vv[key][3]
+                    'Time': vv[key][3],
+                    'Date': [today_date for x in range(0, len(vv[key][0]))]
+
                 }
                 df_list.append(pd.DataFrame.from_dict(reformed_data))
 
@@ -94,17 +98,6 @@ def make_df(data):
         print(pd.DataFrame.from_dict(combined_df))
         print('-------')
 
-
-    # for k, v in data.items():
-    #     for kk, i in v:
-    #         reformed_data ={
-    #             'Product': [i for x in len(i[kk][0])],
-    #             'Name': i[kk][0],
-    #             'Task': i[kk][1],
-    #             'Units': i[kk][2],
-    #             'Time': i[kk][3]
-    #         }
-    #         pd.DataFrame.from_dict(reformed_data)
 
 def extract_data(body):
 
@@ -145,7 +138,7 @@ def extract_data(body):
     for i in sub_entries:
 
         if line_count == True:
-            today_date = i[0].decode()[-2:-11]
+            today_date = i[0].decode()[-11:-1]
             line_count = False
             continue
         else:
@@ -154,6 +147,7 @@ def extract_data(body):
 
             if re.search('________________', i[1].decode()):
                 at_trimming = True
+
                 break
 
     name_flag = False
@@ -161,7 +155,8 @@ def extract_data(body):
     time_flag = False
     el_cnt = 0
 
-    [print(i) for i in prod_tasks.values()]
+    # [print(i) for i in prod_tasks.values()]
+    prod_tasks.popitem()
     print('----')
 
     for w, i in prod_tasks.items():
@@ -219,9 +214,14 @@ def extract_data(body):
         # end for j in i
 
     #[print(i) for i in prod_list]
-    [print(i) for i in task_entries.items()]
 
-    return task_entries
+
+
+    # [print(i) for i in task_entries.items()]
+
+    print(today_date)
+
+    return [task_entries, today_date]
 
 
 
