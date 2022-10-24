@@ -33,15 +33,33 @@ def main():
 
     df = pd.read_parquet('record_data/total_data.parquet')
 
-    worker_df = df.groupby('Name')
-
     products_series = df['Product'].unique()
+    pre_roll_list = [x for x in products_series if re.search("PR", x)]
+    worker_df = df[df['Product'].isin(pre_roll_list)]
+    worker_df = worker_df[worker_df['Task'] == 'Twisted']
 
 
-    print(products_series)
-    print(df)
-    print(df['Name'][16])
+    worker_rate = worker_df['Time'].map(lambda x: x.total_seconds())
 
+    worker_df['Rate'] = worker_df['Units'].rdiv(worker_rate)
+
+
+    print(worker_df['Rate'])
+
+
+
+
+
+    worker_df = worker_df.groupby('Name', sort=True)
+
+    # print(w_pr_stats.sort_values(ascending=False))
+
+
+
+    # print(pre_roll_list)
+    # print(products_series)
+    # print(df)
+    # print(df['Name'][16])
     # print(df['Time'][0].total_seconds())
 
 
