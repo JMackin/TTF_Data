@@ -1,10 +1,10 @@
 import pandas as pd
 
 import re
+import pyarrow
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+8 to toggle the breakpoint.
+
+def clean_df():
 
     df = pd.read_csv('record_data/total_data.csv')
     df = df.convert_dtypes()
@@ -20,23 +20,35 @@ def print_hi(name):
     df['Date'] = df['Date'].map(lambda x: pd.to_datetime(x[1:], format='%m/%d/%y') if len(x) == 9 else pd.to_datetime(x[1:], format='%m/%d/%Y'))
     # df['Time'] = df['Time'].map(lambda x: int((x.split(':')[0]))*60+int(x.split(':')[1]))
 
+    # df.to_parquet('record_data/total_data.parquet')
+
+    return df
 
 
+def do_analysis(df):
 
-    [print(i) for i in df['Time']]
+    print('x')
 
-    [print(x) for x in df['Date']]
+def main():
 
+    df = pd.read_parquet('record_data/total_data.parquet')
+
+    worker_df = df.groupby('Name')
+
+    products_series = df['Product'].unique()
+
+
+    print(products_series)
     print(df)
-    print(df.dtypes)
+    print(df['Name'][16])
+
+    # print(df['Time'][0].total_seconds())
 
 
 
 
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    main()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
