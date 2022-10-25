@@ -2,7 +2,6 @@ import pandas as pd
 
 import re
 import pyarrow
-import tkinter as tk
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -63,10 +62,9 @@ def total_units_by_month_for_product(df, prod):
 
     total_units_per_product_per_month = df.groupby(pd.Grouper(key='Date', freq='M'))['Units'].agg('sum')
 
-    total_units_per_product_per_month.plot.bar()
+    # total_units_per_product_per_month.plot.bar()
 
-    plt.show()
-
+    return total_units_per_product_per_month
 
 def rate_for_task_for_worker_by_month(df, name, task):
 
@@ -75,9 +73,9 @@ def rate_for_task_for_worker_by_month(df, name, task):
 
     worker_rank_task_speed = df.groupby(pd.Grouper(key='Date', freq='M'))['Rate'].agg('mean').sort_values(ascending=False)
 
-    worker_rank_task_speed.plot(x="Date", y="Rate")
+    return worker_rank_task_speed
 
-    plt.show()
+    # worker_rank_task_speed.plot(x="Date", y="Rate")
 
 
 def avg_efficiency_per_month(df, name):
@@ -86,9 +84,9 @@ def avg_efficiency_per_month(df, name):
 
     avg_efficiency_per_month_by_worker = df.groupby(pd.Grouper(key='Date', freq='M'))['Rate'].agg('mean').sort_values(ascending=False)
 
-    avg_efficiency_per_month_by_worker.plot(x="Date", y="Rate")
+    return avg_efficiency_per_month_by_worker
 
-    plt.show()
+    # avg_efficiency_per_month_by_worker.plot(x="Date", y="Rate")
 
 
 
