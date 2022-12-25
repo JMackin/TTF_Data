@@ -14,21 +14,25 @@ def clean_df():
 
     df['Time'] = df['Time'].mask(df['Time'] == 'X:Y', '0:00')
 
-    df['Time'] = df['Time'].map(lambda x: pd.to_timedelta(x+':00'))
+    try:
+        df['Time'] = df['Time'].map(lambda x: pd.to_timedelta(x+':00'))
 
-    # df['Date'] = df['Date'].map(lambda x: x[:-2]+'2022' if x[-4:] != '2022' else x)
+        # df['Date'] = df['Date'].map(lambda x: x[:-2]+'2022' if x[-4:] != '2022' else x)
 
-    df['Date'] = df['Date'].map(lambda x: pd.to_datetime(x[1:], format='%m/%d/%y') if len(x) == 9 else pd.to_datetime(x[1:], format='%m/%d/%Y'))
-    # df['Time'] = df['Time'].map(lambda x: int((x.split(':')[0]))*60+int(x.split(':')[1]))
+        df['Date'] = df['Date'].map(lambda x: pd.to_datetime(x[1:], format='%m/%d/%y') if len(x) == 9 else pd.to_datetime(x[1:], format='%m/%d/%Y'))
+        # df['Time'] = df['Time'].map(lambda x: int((x.split(':')[0]))*60+int(x.split(':')[1]))
 
-    df['Task'] = df['Task'].map(lambda x: 'T/S/B' if (re.search('T/S/B', x) and not re.search('T/S/B\(2-Pack\)', x)) else x)
-    df['Task'] = df['Task'].map(lambda x: x.replace('Didtask:', ''))
+        df['Task'] = df['Task'].map(lambda x: 'T/S/B' if (re.search('T/S/B', x) and not re.search('T/S/B\(2-Pack\)', x)) else x)
+        df['Task'] = df['Task'].map(lambda x: x.replace('Didtask:', ''))
 
-    #GET EFFICIENCY RATE
-    worker_rate = df['Time'].map(lambda x: x.total_seconds())
-    df['Rate'] = df['Units'].div((worker_rate) / 60)
+        #GET EFFICIENCY RATE
+        worker_rate = df['Time'].map(lambda x: x.total_seconds())
+        df['Rate'] = df['Units'].div((worker_rate) / 60)
 
-    df.to_parquet('record_data/total_data.parquet')
+        df.to_parquet('record_data/total_data.parquet')
+
+    except:
+        print("Error")
 
 
 def main():
@@ -65,6 +69,7 @@ def total_units_by_month_for_product(df, prod):
     # total_units_per_product_per_month.plot.bar()
 
     return total_units_per_product_per_month
+    df['Time'] = df['Time'].map(lambda x: pd.to_timedelta(x+':00'))
 
 def rate_for_task_for_worker_by_month(df, name, task):
 

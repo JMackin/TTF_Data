@@ -77,6 +77,8 @@ def read_extract(folder_id, month, year):
     creds = make_creds()
     big_df_list = []
 
+
+
     try:
         service = build('drive', 'v3', credentials=creds)
 
@@ -168,15 +170,15 @@ def make_df(data, today_date, month, year):
 
                 df_list.append(pd.DataFrame.from_dict(reformed_data))
 
-        if len(df_list) > 0:
-            combined_df = pd.concat(df_list)
-            df_list = []
+    if len(df_list) > 0:
+        combined_df = pd.concat(df_list)
+        df_list = []
 
-        print(pd.DataFrame.from_dict(combined_df))
-        out_df = pd.DataFrame.from_dict(combined_df)
-        out_df.to_csv(f'{out_path}/{filename}.csv')
+    print(pd.DataFrame.from_dict(combined_df))
+    out_df = pd.DataFrame.from_dict(combined_df)
+    out_df.to_csv(f'{out_path}/{filename}.csv')
 
-        return out_df
+    return out_df
 
 def extract_data(body):
 
