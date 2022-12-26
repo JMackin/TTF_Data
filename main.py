@@ -179,6 +179,8 @@ class MainWindow(QMainWindow):
         product_totals_data = dan.total_units_all_time_by_product_for_worker(df, worker_text)
         print(product_totals_data)
 
+        print(dan.total_units_per_month_by_product_for_worker(df, worker_text))
+
 
 #Start the show
 ###
