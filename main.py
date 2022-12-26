@@ -84,6 +84,12 @@ class MainWindow(QMainWindow):
         self.go_button3.clicked.connect(self.go_button3_click)
         page_layout.addWidget(self.go_button3)
 
+        self.task_label4 = QLabel("TEST FUNCTION")
+        page_layout.addWidget(self.task_label4)
+        self.test_button = QPushButton("Go")
+        self.test_button.clicked.connect(self.test_button_click)
+        page_layout.addWidget(self.test_button)
+
         widget = QWidget()
         widget.setLayout(page_layout)
         self.setCentralWidget(widget)
@@ -105,33 +111,41 @@ class MainWindow(QMainWindow):
         self.task_label2.setText(
             f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
         self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
+        self.task_label4.setText("TEST FUNCTION")
+
     def task_text_changed(self, s): # s is a str
         self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
         self.task_label2.setText(
             f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
         self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
+        self.task_label4.setText("TEST FUNCTION")
 
     def worker_index_changed(self, i): # i is an int
         self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
         self.task_label2.setText(
             f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
         self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
+        self.task_label4.setText("TEST FUNCTION")
+
     def worker_text_changed(self, s): # s is a str
         self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
         self.task_label2.setText(
             f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
         self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
+        self.task_label4.setText("TEST FUNCTION")
 
     def prod_index_changed(self, i): # i is an int
         self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
         self.task_label2.setText(
             f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
         self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
+        self.task_label4.setText("TEST FUNCTION")
 
     def prod_text_changed(self, s): # s is a str
         self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
         self.task_label2.setText(f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
         self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
+        self.task_label4.setText("TEST FUNCTION")
 
 
     def go_button1_click(self):
@@ -156,10 +170,29 @@ class MainWindow(QMainWindow):
         rates_data = dan.avg_efficiency_per_month(df, worker_text)
         print(rates_data)
 
+    def test_button_click(self):
+        worker_text = self.worker_widg.currentText()
+        task_text = self.task_widg.currentText()
+        prod_text = self.prod_widg.currentText()
+
+        # Functionality to be tested...
+        product_totals_data = dan.total_units_all_time_by_product_for_worker(df, worker_text)
+        print(product_totals_data)
+
 
 #Start the show
 ###
 app = QApplication(sys.argv)
+
+# IN data_analysis.py
+#
+#   df = pd.read_parquet('record_data/total_data.parquet')
+#   datas = {
+#         'product': products_series,
+#         'name': workers_list,
+#         'task': task_list
+#     }
+
 df, datas = dan.main()
 
 window = MainWindow()

@@ -55,6 +55,13 @@ def main():
 
     # do_analysis(df, products_series, workers_list, task_list)
 
+def total_units_all_time_by_product_for_worker(df, name):
+
+    df = df[df['Name'] == name]
+
+    total_units_per_product = df.groupby(['Product'])['Units'].agg('sum')
+    return total_units_per_product
+
 
 def total_units_by_month_for_product(df, prod):
 
