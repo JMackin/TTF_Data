@@ -176,10 +176,38 @@ class MainWindow(QMainWindow):
         prod_text = self.prod_widg.currentText()
 
         # Functionality to be tested...
-        product_totals_data = dan.total_units_all_time_by_product_for_worker(df, worker_text)
-        print(product_totals_data)
+        # 
+        # print(dan.total_hours_worked_by_task_for_worker(df, worker_text))
+        # print("By Month")
+        # print(dan.total_hours_worked_by_task_for_worker_per_month(df, worker_text))
 
-        print(dan.total_units_per_month_by_product_for_worker(df, worker_text))
+        # print(dan.rate_for_task_for_worker_by_month(df, worker_text, task_text))
+
+        # # TODO: add field for inputting batch ID
+        # print(dan.total_hours_by_product_for_bid(df, "220622PRMG"))
+        # print(dan.average_hours_by_product_per_month_for_bid(df, "220622PRMG"))
+
+        # print(dan.hours_for_workers_having_worked_on_bid_by_product(df, "220622PRMG"))
+        # print(dan.hours_for_workers_having_worked_on_bid_by_product_per_month(df, "220622PRMG"))
+
+        # print(dan.avg_rate_for_bid_by_product(df, "220622PRMG"))
+        # print(dan.avg_rate_per_month_for_bid_by_product(df, "220622PRMG"))
+
+        # print(dan.total_hours_worked_by_task(df))
+        # print(dan.total_hours_worked_by_task_per_month(df))
+
+        # print(dan.rate_for_task_for_all_workers_by_month(df, task_text))
+        # print(dan.avg_rate_per_month(df))
+
+        # print(dan.avg_rate_for_bid_by_task_per_month(df, "220622PRMG"))
+
+        # print(dan.distribution_of_bid_among_products(df, "220622PRMG"))
+
+        # print(dan.total_units_processed_for_bid(df, "220622PRMG"))
+        # print(dan.total_units_processed_for_bid_by_month(df, "220622PRMG"))
+        # print(dan.total_amount_by_product_for_bid_by_month(df, "220622PRMG"))
+
+        print(dan.total_hours_and_units_per_bid_for_worker(df, worker_text))
 
 
 #Start the show

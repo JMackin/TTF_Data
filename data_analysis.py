@@ -50,10 +50,196 @@ def main():
     # rate_for_task_for_worker_by_month(df, "Ashley", "Twisted")
     # avg_efficiency_per_month(df, "Ashley")
 
-
     return df, things_dict
 
     # do_analysis(df, products_series, workers_list, task_list)
+
+
+def distribution_of_bid_among_products(df, bid):
+
+    df = df[df["BatchID"] == bid]
+    total_units_per_product_for_bid_df = total_amount_by_product_for_bid(df, bid)
+    total_units_df = total_units_processed_for_bid(df, bid)
+    total_units = total_units_df.iloc[0]
+
+    distribution_among_products = total_units_per_product_for_bid_df.div(total_units)
+    distribution_among_products = distribution_among_products * 100
+
+    return distribution_among_products
+
+
+def avg_rate_per_month_for_bid_by_product(df, bid):
+    df = df[df["BatchID"] == bid]
+
+    avg_rate_by_product_per_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'])['Rate'].agg('mean')
+
+    return avg_rate_by_product_per_month
+
+
+def avg_rate_for_bid_by_product(df, bid):
+    df = df[df["BatchID"] == bid]
+
+    avg_rate_by_product = df.groupby(['BatchID', 'Product'])['Rate'].agg('mean')
+
+    return avg_rate_by_product
+
+
+def avg_rate_for_bid_by_task(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    avg_rate_by_task = df.groupby(['BatchID', 'Task'])['Rate'].agg('mean')
+
+    return avg_rate_by_task
+
+
+def avg_rate_for_bid_by_task_per_month(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    avg_rate_by_task = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Task'])['Rate'].agg('mean')
+
+    return avg_rate_by_task
+
+
+def hours_for_workers_having_worked_on_bid_by_product_per_month(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product', 'Name'])['Time'].agg('sum')
+
+    return total_units_per_product_for_bid
+
+
+def hours_for_workers_having_worked_on_bid_by_product(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid = df.groupby(['BatchID', 'Product', 'Name'])['Time'].agg('sum')
+
+    return total_units_per_product_for_bid
+
+
+def average_hours_by_product_per_month_for_bid(df, bid):
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid_by_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'])['Time'].agg('mean')
+
+    return total_units_per_product_for_bid_by_month
+
+
+def total_hours_by_product_per_month_for_bid(df, bid):
+    df = df[df["BatchID"] == bid]
+
+    print("Total time per product")
+    total_units_per_product_for_bid_by_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'])['Time'].agg('sum')
+
+    return total_units_per_product_for_bid_by_month
+
+
+def average_hours_by_product_for_bid(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    print("Total time per product")
+    avg_units_per_product_for_bid = df.groupby(['BatchID', 'Product'])['Time'].agg('mean')
+
+    return avg_units_per_product_for_bid
+
+
+def total_hours_by_product_for_bid(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    print("Total time per product")
+    total_units_per_product_for_bid = df.groupby(['BatchID', 'Product'])['Time'].agg('sum')
+
+    return total_units_per_product_for_bid
+
+
+def total_hours_per_month_for_bid(df, bid):
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid_by_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID'])['Time'].agg('sum')
+
+    return total_units_per_product_for_bid_by_month
+
+
+def total_hours_for_bid(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid = df.groupby(['BatchID'])['Time'].agg('sum')
+
+    return total_units_per_product_for_bid
+
+
+def total_amount_by_product_for_bid_by_month(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'])['Units'].agg('sum')
+
+    return total_units_per_product_for_bid
+
+
+def total_amount_by_product_for_bid(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_per_product_for_bid = df.groupby(['BatchID', 'Product'])['Units'].agg('sum')
+
+    return total_units_per_product_for_bid
+
+
+def total_units_processed_for_bid(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_for_bid = df.groupby(['BatchID'])['Units'].agg('sum')
+
+    return total_units_for_bid
+
+
+def total_units_processed_for_bid_by_month(df, bid):
+
+    df = df[df["BatchID"] == bid]
+
+    total_units_for_bid_by_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID'])['Units'].agg('sum')
+
+    return total_units_for_bid_by_month
+
+
+def total_hours_worked_by_task_for_worker(df, name):
+
+    df = df[df["Name"] == name]
+
+    total_hours_by_task = df.groupby(['Task'])['Time'].agg('sum')
+
+    return total_hours_by_task
+
+
+def total_hours_worked_by_task(df):
+
+    total_hours_by_task = df.groupby(['Task'])['Time'].agg('sum')
+
+    return total_hours_by_task
+
+
+def total_hours_worked_by_task_per_month(df):
+
+    total_hours_by_task_per_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'Task'])['Time'].agg('sum')
+
+    return total_hours_by_task_per_month
+
+
+def total_hours_worked_by_task_for_worker_per_month(df, name):
+    df = df[df["Name"] == name]
+
+    total_hours_by_task = df.groupby([pd.Grouper(key='Date', freq='M'), 'Task'])['Time'].agg('sum')
+
+    return total_hours_by_task
+
 
 def total_units_all_time_by_product_for_worker(df, name):
 
@@ -62,6 +248,7 @@ def total_units_all_time_by_product_for_worker(df, name):
     total_units_per_product = df.groupby(['Product'])['Units'].agg('sum')
 
     return total_units_per_product
+
 
 def total_units_per_month_by_product_for_worker(df, name):
 
@@ -71,7 +258,8 @@ def total_units_per_month_by_product_for_worker(df, name):
 
     return total_units_per_product_by_month
 
-def total_units_all_time_by_product_for_worker(df, name):
+
+def total_units_per_month_by_product_for_worker(df, name):
 
     df = df[df['Name'] == name]
 
@@ -79,6 +267,25 @@ def total_units_all_time_by_product_for_worker(df, name):
     total_units_per_product_by_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'Product'])['Units'].agg('sum')
 
     return total_units_per_product
+
+
+def total_units_done_by_task_for_worker_per_month(df, name):
+
+    df = df[df['Name'] == name]
+
+    total_units_per_task_per_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'Task'])['Units'].agg('sum')
+
+    return total_units_per_task_per_month
+
+
+def total_units_done_by_task_for_worker(df, name):
+
+    df = df[df['Name'] == name]
+
+    total_units_per_task = df.groupby(['Task'])['Units'].agg('sum')
+
+    return total_units_per_task
+
 
 def total_units_by_month_for_product(df, prod):
 
@@ -91,7 +298,8 @@ def total_units_by_month_for_product(df, prod):
     return total_units_per_product_per_month
     df['Time'] = df['Time'].map(lambda x: pd.to_timedelta(x+':00'))
 
-def rate_for_task_for_worker_by_month(df, name, task):
+
+def rate_for_task_for_one_worker_by_month(df, name, task):
 
     df = df[df['Task'] == task]
     df = df[df['Name'] == name]
@@ -103,7 +311,54 @@ def rate_for_task_for_worker_by_month(df, name, task):
     # worker_rank_task_speed.plot(x="Date", y="Rate")
 
 
-def avg_efficiency_per_month(df, name):
+def rate_for_task_for_all_workers_by_month(df, task):
+
+    df = df[df['Task'] == task]
+
+    avg_rate_per_task_per_worker_per_month = df.groupby(['Name', pd.Grouper(key='Date', freq='M')])['Rate'].agg('mean')
+
+    return avg_rate_per_task_per_worker_per_month
+
+    # worker_rank_task_speed.plot(x="Date", y="Rate")
+
+
+def total_hours_and_units_per_bid_for_worker(df, name):
+
+    df = df[df['Name'] == name]
+
+    total_units_per_bid = df.groupby(['BatchID'])['Units'].agg('sum')
+    total_hours_per_bid = df.groupby(['BatchID'])['Time'].agg('sum')
+
+    total_hours_and_units_per_bid = pd.concat([total_units_per_bid, total_hours_per_bid], axis=1)
+    return total_hours_and_units_per_bid
+
+
+def total_hours_worked_for_worker(df, name):
+
+    df = df[df['Name'] == name]
+
+    total_hours_for_worker = df['Time'].agg('sum')
+
+    return total_hours_for_worker
+
+
+def total_hours_worked_for_worker_per_month(df, name):
+
+    df = df[df['Name'] == name]
+
+    total_hours_for_worker = df['Time', pd.Grouper(key='Date', freq='M')].agg('sum')
+
+    return total_hours_for_worker
+
+
+def avg_rate_per_month_by_task(df):
+
+    avg_rate_per_task_per_month = df.groupby(['Task', pd.Grouper(key='Date', freq='M')])['Rate'].agg('mean')
+
+    return avg_rate_per_task_per_month
+
+
+def avg_efficiency_per_month_for_one_worker(df, name):
 
     df = df[df['Name'] == name]
 
@@ -112,7 +367,6 @@ def avg_efficiency_per_month(df, name):
     return avg_efficiency_per_month_by_worker
 
     # avg_efficiency_per_month_by_worker.plot(x="Date", y="Rate")
-
 
 
 def do_analysis(df, products_series, workers_list, task_list):
