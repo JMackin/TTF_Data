@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import data_analysis as dan
+import makeWorkerReport as makerep
 
 import re
 import pyarrow
@@ -36,8 +37,19 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.monthly = False
+
+        # 1 - general
+        # 2 - worker
+        # 3 - bid
+        # 4 - product
+        # 5 - task
+        self.selected_subject = 1
+        self.selected_subject_dict = {1: 'General', 2: 'Worker', 3: 'Batch ID', 4: 'Product', 5: 'Task'}
+
+
         self.selected_month = 6
         self.selected_year = 2022
+        self.selected_month_group = "2022-06-30"
 
         self.setWindowTitle("TTF Data analysis")
 
@@ -54,19 +66,20 @@ class MainWindow(QMainWindow):
 
         self.title_label = QLabel("Select type of report to generate.\n\n"
                                   "Time Frame Options:\n"
-                                  "- Total stats to date\n"
-                                  "- Stats for specific month/year\n\n"
+                                  "  - Total stats to date\n"
+                                  "  - Stats for specific month/year\n\n"
                                   "Subject Options:\n"
-                                  "- General Report\n"
-                                  "- Report on specific worker\n"
-                                  "- Report on specific batch ID\n"
-                                  "- Report on specific product type\n"
-                                  "- Report on specific task\n")
+                                  "  - General Report\n"
+                                  "  - Report on specific worker\n"
+                                  "  - Report on specific batch ID\n"
+                                  "  - Report on specific product type\n"
+                                  "  - Report on specific task\n"
+                                  "  ----------------------------------------------\n")
         page_layout.addWidget(self.title_label)
 
 
 
-        #CHECKBOX FOR STATS TO DATE
+        #BUTTONS FOR STATS TO DATE
         self.montlhy_or_todate_label = QLabel("Time Frame: ")
         self.todate_button = QRadioButton("To Date")
         self.todate_button.setChecked(True)
@@ -95,6 +108,8 @@ class MainWindow(QMainWindow):
         self.product_report_button = QRadioButton("Product")
         self.task_report_button = QRadioButton("Task")
 
+        self.button_group2.buttonClicked.connect(lambda: self.selected_subject_button_state_change(self.button_group2.checkedId()))
+
         page_layout.addWidget(self.subject_label)
         button_layout2.addWidget(self.general_report_button, 0, 0)
         button_layout2.addWidget(self.worker_report_button, 1, 0)
@@ -102,11 +117,11 @@ class MainWindow(QMainWindow):
         button_layout2.addWidget(self.product_report_button, 2, 0)
         button_layout2.addWidget(self.task_report_button, 2, 1)
 
-        self.button_group2.addButton(self.general_report_button)
-        self.button_group2.addButton(self.worker_report_button)
-        self.button_group2.addButton(self.bid_report_button)
-        self.button_group2.addButton(self.product_report_button)
-        self.button_group2.addButton(self.task_report_button)
+        self.button_group2.addButton(self.general_report_button, 1)
+        self.button_group2.addButton(self.worker_report_button, 2)
+        self.button_group2.addButton(self.bid_report_button, 3)
+        self.button_group2.addButton(self.product_report_button, 4)
+        self.button_group2.addButton(self.task_report_button, 5)
 
         page_layout.addLayout(button_layout2)
 
@@ -125,7 +140,7 @@ class MainWindow(QMainWindow):
 
         print(df)
 
-        self.month_things_dict = dan.get_things_dict_for_month(month, year, df)
+        self.month_things_dict, self.selected_month = dan.get_things_dict_for_month(month, year, df)
 
         self.month_input.dateChanged.connect(self.selected_month_year)
 
@@ -137,28 +152,44 @@ class MainWindow(QMainWindow):
         self.month_input_label.setVisible(False)
 
         #TASKS
+        self.task_widg_label = QLabel("Select Task: ")
         self.task_widg = QComboBox()
         self.task_widg.addItems(datas['tasks'])
         # Sends the current index (position) of the selected item.
-        self.task_widg.currentIndexChanged.connect( self.task_index_changed )
+        self.task_widg.currentIndexChanged.connect(self.task_index_changed)
         # There is an alternate signal to send the text.
-        self.task_widg.editTextChanged.connect( self.task_text_changed )
+        self.task_widg.editTextChanged.connect(self.task_text_changed)
+        page_layout.addWidget(self.task_widg_label)
         page_layout.addWidget(self.task_widg)
 
+        self.task_widg.setVisible(False)
+        self.task_widg_label.setVisible(False)
+
         #WORKERS
+        self.worker_widg_label = QLabel("Select Worker: ")
         self.worker_widg = QComboBox()
         self.worker_widg.addItems(datas['names'])
         self.worker_widg.currentIndexChanged.connect( self.worker_index_changed )
         self.worker_widg.editTextChanged.connect( self.worker_text_changed )
+        page_layout.addWidget(self.worker_widg_label)
         page_layout.addWidget(self.worker_widg)
 
+        self.worker_widg.setVisible(False)
+        self.worker_widg_label.setVisible(False)
+
+
         #PRODUCTS
+        self.prod_widg_label = QLabel("Select Product Type: ")
         self.prod_widg = QComboBox()
         self.prod_widg.addItems(datas['products'])
 
         self.prod_widg.currentIndexChanged.connect(self.prod_index_changed)
         self.prod_widg.editTextChanged.connect(self.prod_text_changed)
+        page_layout.addWidget(self.prod_widg_label)
         page_layout.addWidget(self.prod_widg)
+
+        self.prod_widg.setVisible(False)
+        self.prod_widg_label.setVisible(False)
 
 
 
@@ -180,7 +211,7 @@ class MainWindow(QMainWindow):
         # self.go_button3.clicked.connect(self.go_button3_click)
         # page_layout.addWidget(self.go_button3)
 
-        self.task_label4 = QLabel("TEST FUNCTION")
+        self.task_label4 = QLabel("Generate Report:")
         page_layout.addWidget(self.task_label4)
         self.test_button = QPushButton("Go")
         self.test_button.clicked.connect(self.test_button_click)
@@ -201,7 +232,6 @@ class MainWindow(QMainWindow):
     # total_units_by_month_for_product(df, prod)
     # rate_for_task_for_worker_by_month(df, name, task)
     # avg_efficiency_per_month(df, name, rate)
-
 
     def todateMontlhy_buttonState(self, b):
 
@@ -241,7 +271,7 @@ class MainWindow(QMainWindow):
         self.selected_month = month
         self.selected_year = year
 
-        month_things_dict = dan.get_things_dict_for_month(month, year, df)
+        month_things_dict, self.selected_month_group = dan.get_things_dict_for_month(month, year, df)
 
         self.task_widg.clear()
         self.worker_widg.clear()
@@ -252,46 +282,102 @@ class MainWindow(QMainWindow):
 
         print(str(month) + ':' + str(year))
 
+    def selected_subject_button_state_change(self, b):
+
+        # 1 - general
+        # 2 - worker
+        # 3 - bid
+        # 4 - product
+        # 5 - task
+
+        if b == 1:
+            print(b)
+            self.worker_widg.setVisible(False)
+            self.prod_widg.setVisible(False)
+            self.task_widg.setVisible(False)
+
+            self.worker_widg_label.setVisible(False)
+            self.prod_widg_label.setVisible(False)
+            self.task_widg_label.setVisible(False)
+
+            self.selected_subject = 1
+
+
+        elif b == 2:
+            print(b)
+            self.worker_widg.setVisible(True)
+            self.prod_widg.setVisible(False)
+            self.task_widg.setVisible(False)
+
+            self.worker_widg_label.setVisible(True)
+            self.prod_widg_label.setVisible(False)
+            self.task_widg_label.setVisible(False)
+
+            self.selected_subject = 2
+            self.selected_subject_dict[2] = self.worker_widg.currentText()
+
+        elif b == 3:
+            print(b)
+            self.worker_widg.setVisible(False)
+            self.prod_widg.setVisible(False)
+            self.task_widg.setVisible(False)
+
+            self.worker_widg_label.setVisible(False)
+            self.prod_widg_label.setVisible(False)
+            self.task_widg_label.setVisible(False)
+
+            self.selected_subject = 3
+            self.selected_subject_dict[3] = "BID"
+
+        elif b == 4:
+            print(b)
+            self.worker_widg.setVisible(False)
+            self.prod_widg.setVisible(True)
+            self.task_widg.setVisible(False)
+
+            self.worker_widg_label.setVisible(False)
+            self.prod_widg_label.setVisible(True)
+            self.task_widg_label.setVisible(False)
+
+            self.selected_subject = 4
+            self.selected_subject_dict[4] = self.prod_widg.currentText()
+
+        elif b == 5:
+            print(b)
+            self.worker_widg.setVisible(False)
+            self.prod_widg.setVisible(False)
+            self.task_widg.setVisible(True)
+
+            self.worker_widg_label.setVisible(False)
+            self.prod_widg_label.setVisible(False)
+            self.task_widg_label.setVisible(True)
+
+            self.selected_subject = 5
+            self.selected_subject_dict[5] = self.task_widg.currentText()
+
     def task_index_changed(self, i): # i is an int
-        # self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
-        # self.task_label2.setText(
-        #     f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
-        # self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
-        self.task_label4.setText("TEST FUNCTION")
+
+        self.selected_subject_dict[5] = self.task_widg.currentText()
 
     def task_text_changed(self, s): # s is a str
-        # self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
-        # self.task_label2.setText(
-        #     f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
-        # self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
-        self.task_label4.setText("TEST FUNCTION")
+
+        self.selected_subject_dict[5] = self.task_widg.currentText()
 
     def worker_index_changed(self, i): # i is an int
-        # self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
-        # self.task_label2.setText(
-        #     f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
-        # self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
-        self.task_label4.setText("TEST FUNCTION")
+
+        self.selected_subject_dict[2] = self.worker_widg.currentText()
 
     def worker_text_changed(self, s): # s is a str
-        # self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
-        # self.task_label2.setText(
-        #     f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
-        # self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
-        self.task_label4.setText("TEST FUNCTION")
+
+        self.selected_subject_dict[2] = self.worker_widg.currentText()
 
     def prod_index_changed(self, i): # i is an int
-        # self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
-        # self.task_label2.setText(
-        #     f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
-        # self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
-        self.task_label4.setText("TEST FUNCTION")
+
+        self.selected_subject_dict[4] = self.prod_widg.currentText()
 
     def prod_text_changed(self, s): # s is a str
-        # self.task_label1.setText(f" Total units done for {self.prod_widg.currentText()} by month ")
-        # self.task_label2.setText(f" Avg Rate (units/min) for {self.task_widg.currentText()} done by {self.worker_widg.currentText()} per month ")
-        # self.task_label3.setText(f" Avg Efficiency for {self.worker_widg.currentText()} across all tasks per month ")
-        self.task_label4.setText("TEST FUNCTION")
+
+        self.selected_subject_dict[4] = self.prod_widg.currentText()
 
 
     # def go_button1_click(self):
@@ -317,9 +403,10 @@ class MainWindow(QMainWindow):
     #     print(rates_data)
 
     def test_button_click(self):
-        worker_text = self.worker_widg.currentText()
-        task_text = self.task_widg.currentText()
-        prod_text = self.prod_widg.currentText()
+
+
+        makerep.main(df, self.monthly, self.selected_subject, self.selected_subject_dict, self.selected_month_group)
+
 
         # Functionality to be tested...
         # 

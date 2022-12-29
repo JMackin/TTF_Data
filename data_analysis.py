@@ -79,7 +79,7 @@ def get_things_dict_for_month(month, year, df):
         'bids': bid_list
     }
 
-    return things_dict
+    return things_dict, given_month
 
 
 def distribution_of_bid_among_products(df, bid):
