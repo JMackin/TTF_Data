@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
     QSpinBox,
     QTimeEdit,
     QVBoxLayout,
-    QWidget, QStackedLayout, QHBoxLayout, QGridLayout, QButtonGroup,
+    QWidget, QStackedLayout, QHBoxLayout, QGridLayout, QButtonGroup, QFormLayout,
 )
 
 
@@ -44,8 +44,8 @@ class MainWindow(QMainWindow):
         # 4 - product
         # 5 - task
         self.selected_subject = 1
-        self.selected_subject_dict = {1: 'General', 2: 'Worker', 3: 'Batch ID', 4: 'Product', 5: 'Task'}
-
+        self.selected_subject_dict = {1: 'General', 2: 'Worker', 3: ['Batch ID', False], 4: 'Product', 5: 'Task'}
+        self.is_Special = False
 
         self.selected_month = 6
         self.selected_year = 2022
@@ -56,6 +56,7 @@ class MainWindow(QMainWindow):
         #LAYOUT
         page_layout = QVBoxLayout()
         button_layout = QHBoxLayout()
+        bid_layout = QFormLayout()
         self.button_group1 = QButtonGroup()
         button_layout2 = QGridLayout()
         self.button_group2 = QButtonGroup()
@@ -65,25 +66,18 @@ class MainWindow(QMainWindow):
         #page_layout.addLayout(self.stacklayout)
 
         self.title_label = QLabel("Select type of report to generate.\n\n"
-                                  "Time Frame Options:\n"
-                                  "  - Total stats to date\n"
-                                  "  - Stats for specific month/year\n\n"
-                                  "Subject Options:\n"
-                                  "  - General Report\n"
-                                  "  - Report on specific worker\n"
-                                  "  - Report on specific batch ID\n"
-                                  "  - Report on specific product type\n"
-                                  "  - Report on specific task\n"
-                                  "  ----------------------------------------------\n")
+                                  "Report can be for a specific month and year\n"
+                                  "and can provide either general stats or\n"
+                                  "stats on a specific subject."
+                                  "  \n----------------------------------------------")
         page_layout.addWidget(self.title_label)
 
 
-
         #BUTTONS FOR STATS TO DATE
-        self.montlhy_or_todate_label = QLabel("Time Frame: ")
+        self.montlhy_or_todate_label = QLabel("Stats Time Frame: ")
         self.todate_button = QRadioButton("To Date")
         self.todate_button.setChecked(True)
-        self.monthly_button = QRadioButton("Monthly")
+        self.monthly_button = QRadioButton("By Month")
 
         self.todate_button.toggled.connect(lambda: self.todateMontlhy_buttonState(self.todate_button))
         self.monthly_button.toggled.connect(lambda: self.todateMontlhy_buttonState(self.monthly_button))
@@ -125,6 +119,8 @@ class MainWindow(QMainWindow):
 
         page_layout.addLayout(button_layout2)
 
+        page_layout.addWidget(QLabel("  ----------------------------------------------"))
+
 
         #GIVEN DATE
         self.month_input_label = QLabel("Select Month:")
@@ -150,6 +146,32 @@ class MainWindow(QMainWindow):
 
         self.month_input.setVisible(False)
         self.month_input_label.setVisible(False)
+
+        #BATCH ID INPUT LINE
+
+        self.bid_input_label = QLabel("Enter Batch ID: ")
+        self.bid_input = QLineEdit()
+        self.bid_input.setMaxLength(15)
+
+        self.bid_input.textChanged.connect(self.bid_input_changed)
+
+        self.specialty_batch_checkbox_label = QLabel("Speciality batch: "
+                                                     "\n(e.g. Life, Flower Co, etc.")
+        self.specialty_batch_checkbox = QCheckBox()
+        self.specialty_batch_checkbox.toggled.connect(self.specialty_box_toggled)
+
+
+        bid_layout.addRow(self.bid_input_label, self.bid_input)
+        bid_layout.addRow(self.specialty_batch_checkbox_label, self.specialty_batch_checkbox)
+
+        page_layout.addLayout(bid_layout)
+
+        self.bid_input.setVisible(False)
+        self.bid_input_label.setVisible(False)
+        self.specialty_batch_checkbox_label.setVisible(False)
+        self.specialty_batch_checkbox.setVisible(False)
+
+
 
         #TASKS
         self.task_widg_label = QLabel("Select Task: ")
@@ -211,8 +233,9 @@ class MainWindow(QMainWindow):
         # self.go_button3.clicked.connect(self.go_button3_click)
         # page_layout.addWidget(self.go_button3)
 
-        self.task_label4 = QLabel("Generate Report:")
-        page_layout.addWidget(self.task_label4)
+        page_layout.addWidget(QLabel("  ----------------------------------------------"))
+
+
         self.test_button = QPushButton("Go")
         self.test_button.clicked.connect(self.test_button_click)
         page_layout.addWidget(self.test_button)
@@ -249,7 +272,7 @@ class MainWindow(QMainWindow):
                 self.worker_widg.addItems(datas['names'])
                 self.prod_widg.addItems(datas['products'])
 
-        if b.text() == "Monthly":
+        if b.text() == "By Month":
             if b.isChecked():
                 print(b.text())
                 self.monthly = True
@@ -300,6 +323,11 @@ class MainWindow(QMainWindow):
             self.prod_widg_label.setVisible(False)
             self.task_widg_label.setVisible(False)
 
+            self.bid_input.setVisible(False)
+            self.bid_input_label.setVisible(False)
+            self.specialty_batch_checkbox_label.setVisible(False)
+            self.specialty_batch_checkbox.setVisible(False)
+
             self.selected_subject = 1
 
 
@@ -312,6 +340,11 @@ class MainWindow(QMainWindow):
             self.worker_widg_label.setVisible(True)
             self.prod_widg_label.setVisible(False)
             self.task_widg_label.setVisible(False)
+
+            self.bid_input.setVisible(False)
+            self.bid_input_label.setVisible(False)
+            self.specialty_batch_checkbox_label.setVisible(False)
+            self.specialty_batch_checkbox.setVisible(False)
 
             self.selected_subject = 2
             self.selected_subject_dict[2] = self.worker_widg.currentText()
@@ -326,8 +359,13 @@ class MainWindow(QMainWindow):
             self.prod_widg_label.setVisible(False)
             self.task_widg_label.setVisible(False)
 
+            self.bid_input.setVisible(True)
+            self.bid_input_label.setVisible(True)
+            self.specialty_batch_checkbox_label.setVisible(True)
+            self.specialty_batch_checkbox.setVisible(True)
+
             self.selected_subject = 3
-            self.selected_subject_dict[3] = "BID"
+            self.selected_subject_dict[3] = self.bid_input.text()
 
         elif b == 4:
             print(b)
@@ -338,6 +376,11 @@ class MainWindow(QMainWindow):
             self.worker_widg_label.setVisible(False)
             self.prod_widg_label.setVisible(True)
             self.task_widg_label.setVisible(False)
+
+            self.bid_input.setVisible(False)
+            self.bid_input_label.setVisible(False)
+            self.specialty_batch_checkbox_label.setVisible(False)
+            self.specialty_batch_checkbox.setVisible(False)
 
             self.selected_subject = 4
             self.selected_subject_dict[4] = self.prod_widg.currentText()
@@ -352,8 +395,32 @@ class MainWindow(QMainWindow):
             self.prod_widg_label.setVisible(False)
             self.task_widg_label.setVisible(True)
 
+            self.bid_input.setVisible(False)
+            self.bid_input_label.setVisible(False)
+            self.specialty_batch_checkbox_label.setVisible(False)
+            self.specialty_batch_checkbox.setVisible(False)
+
             self.selected_subject = 5
             self.selected_subject_dict[5] = self.task_widg.currentText()
+
+    def bid_input_changed(self):
+
+        self.selected_subject_dict[3] = [self.bid_input.text(), self.is_Special]
+
+    def specialty_box_toggled(self):
+
+        self.is_Special = self.specialty_batch_checkbox.isChecked()
+
+        if self.is_Special:
+            self.bid_input_label.clear()
+            self.bid_input_label.setText("Enter Keyword: ")
+            self.selected_subject_dict[3] = [self.bid_input.text(), self.is_Special]
+
+        else:
+            self.bid_input_label.clear()
+            self.bid_input_label.setText("Enter Batch ID: ")
+            self.selected_subject_dict[3] = [self.bid_input.text(), self.is_Special]
+
 
     def task_index_changed(self, i): # i is an int
 
