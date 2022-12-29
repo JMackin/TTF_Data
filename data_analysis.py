@@ -5,6 +5,8 @@ import pyarrow
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import calendar
+import datetime
 
 def clean_df():
 
@@ -30,7 +32,6 @@ def clean_df():
     df.to_parquet('record_data/total_data.parquet')
 
 
-
 def main():
 
     clean_df()
@@ -41,9 +42,9 @@ def main():
     task_list = df['Task'].unique()
 
     things_dict = {
-        'product': products_series,
-        'name': workers_list,
-        'task': task_list
+        'products': products_series,
+        'names': workers_list,
+        'tasks': task_list
     }
 
     # total_units_by_month_for_product(df, products_series[2])
@@ -53,6 +54,32 @@ def main():
     return df, things_dict
 
     # do_analysis(df, products_series, workers_list, task_list)
+
+
+def get_things_dict_for_month(month, year, df):
+
+    given_month = calendar.monthrange(year, month)
+
+    if month < 10:
+        given_month = str(year) + '-0' + str(month) + '-' + str(given_month[1])
+    else:
+        given_month = str(year) + '-' + str(month) + '-' + str(given_month[1])
+
+    df = df.groupby([pd.Grouper(key='Date', freq='M')]).get_group(given_month)
+
+    products_series = df['Product'].unique()
+    workers_list = df['Name'].unique()
+    task_list = df['Task'].unique()
+    bid_list = df['BatchID'].unique()
+
+    things_dict = {
+        'products': products_series,
+        'names': workers_list,
+        'tasks': task_list,
+        'bids': bid_list
+    }
+
+    return things_dict
 
 
 def distribution_of_bid_among_products(df, bid):
@@ -346,14 +373,46 @@ def total_hours_worked_for_worker_per_month(df, name):
 
     df = df[df['Name'] == name]
 
-    total_hours_for_worker = df['Time', pd.Grouper(key='Date', freq='M')].agg('sum')
+    total_hours_for_worker = df.groupby(['Time', pd.Grouper(key='Date', freq='M')]).agg('sum')
 
     return total_hours_for_worker
+
+
+def ea_bid_worked_on_by_worker(df, name):   #Returns Array
+
+    df = df[df['Name'] == name]
+
+    ea_bid_worked_on = df["BatchID"].unique()
+
+    return ea_bid_worked_on
+
+
+def ea_bid_worked_on_by_worker_ea_month(df, name):
+
+    df = df[df['Name'] == name]
+
+    ea_bid_worked_on_monthly_date = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID'], group_keys=True)['Date']\
+        .apply(lambda x: x)
+    ea_bid_worked_on_monthly_units = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID'], group_keys=True)['Units']\
+        .apply(lambda x: x)
+
+    ea_bid_worked_on_monthly = pd.concat([ea_bid_worked_on_monthly_date, ea_bid_worked_on_monthly_units], axis=1)
+
+    ea_bid_worked_on_monthly = ea_bid_worked_on_monthly.set_axis(['Day', 'Units'], axis='columns').rename_axis("BIDs_per_month", axis="columns")
+
+    return ea_bid_worked_on_monthly
 
 
 def avg_rate_per_month_by_task(df):
 
     avg_rate_per_task_per_month = df.groupby(['Task', pd.Grouper(key='Date', freq='M')])['Rate'].agg('mean')
+
+    return avg_rate_per_task_per_month
+
+
+def avg_rate_per_task_by_task(df):
+
+    avg_rate_per_task_per_month = df.groupby([pd.Grouper(key='Date', freq='M'), 'Task'])['Rate'].agg('mean')
 
     return avg_rate_per_task_per_month
 
@@ -368,6 +427,68 @@ def avg_efficiency_per_month_for_one_worker(df, name):
 
     # avg_efficiency_per_month_by_worker.plot(x="Date", y="Rate")
 
+
+def workers_ranked_by_total_efficiency(df):
+
+    workers_rates = df.groupby(['Name'])['Rate'].agg('mean').sort_values(ascending=False)
+    workers_rates_rank = df.groupby(['Name'])['Rate'].agg('mean').rank(method='dense', ascending=False)
+
+    workers_ranked = pd.merge(workers_rates, workers_rates_rank, on='Name')
+
+    return workers_ranked
+
+
+def workers_ranked_by_total_efficiency_in_given_month(df, year, month):
+
+    given_month = calendar.monthrange(year, month)
+
+    if month < 10:
+        given_month = str(year) + '-0' + str(month) + '-' + str(given_month[1])
+    else:
+        given_month = str(year) + '-' + str(month) + '-' + str(given_month[1])
+
+    workers_rates = df.groupby([pd.Grouper(key='Date', freq='M'), 'Name'])['Rate'].agg(Rate='mean')
+
+    workers_rates['Rank'] = workers_rates.groupby(['Date']).rank(method='min', ascending=False)
+
+    worker_rate_rank_for_given_month = workers_rates.groupby(['Date']).get_group(given_month).sort_values(by='Rank')
+
+    return worker_rate_rank_for_given_month
+
+
+def workers_ranked_by_task_efficiency_in_given_month(df, task, year, month):
+
+    given_month = calendar.monthrange(year, month)
+
+    if month < 10:
+        given_month = str(year) + '-0' + str(month) + '-' + str(given_month[1])
+    else:
+        given_month = str(year) + '-' + str(month) + '-' + str(given_month[1])
+
+    df = df[df['Task'] == task]
+
+    workers_rates = df.groupby([pd.Grouper(key='Date', freq='M'), 'Name'])['Rate'].agg(Rate='mean')
+
+    workers_rates['Rank'] = workers_rates.groupby(['Date']).rank(method='min', ascending=False)
+
+    worker_rate_rank_for_given_month = workers_rates.groupby(['Date']).get_group(given_month).sort_values(by='Rank')
+
+
+    return worker_rate_rank_for_given_month
+
+
+def total_labor_hours_by_month(df):
+
+    hours = df.groupby([pd.Grouper(key='Date', freq='M')])['Time'].sum()
+
+    return hours
+
+
+def total_labor_hours_to_date(df):
+
+    hours = df['Time'].sum()
+
+    return hours
 
 def do_analysis(df, products_series, workers_list, task_list):
 
