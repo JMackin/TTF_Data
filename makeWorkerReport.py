@@ -5,55 +5,92 @@ import pdfkit
 import data_analysis as dan
 import datetime
 
-now_dt = f"{datetime.datetime.now(tz=None).strftime('%S%H%M%j%Y')}"
-report_timeframe = "Total_to_Date"
-report_subject = "General"
-report_title = f"{report_timeframe}_{report_subject}_Stats_Report_{now_dt}"
-
 
 def main(df, monthly, subject, subject_dict, selected_month):
-
-    # Parent Folder path
-    if not os.path.isdir("./Generated_Reports/"):
-        os.mkdir("./Generated_Reports/")
-
-    # Report directory containing html files w/ data tables and final report
-    if not os.path.isdir(f"./Generated_Reports/{report_title}/"):
-        os.mkdir(f"./Generated_Reports/{report_title}/")
-
 
     print(subject)
     print(subject_dict[subject])
     print(selected_month)
     print(monthly)
 
-    if monthly:
-        df = df.groupby([pd.Grouper(key='Date', freq='M')]).get_group(selected_month)
-        report_timeframe = f"for_{selected_month[:-3]}"
-
     if subject == 1:
         report_subject = "General"
-        make_general_report(df, monthly, subject_dict[subject], subject_dict, selected_month)
+
+        now_dt, report_timeframe, report_title, report_topic \
+            = get_report_parameters(df, monthly, subject, subject_dict, selected_month, report_subject)
+
+        make_report_dirs(report_title)
+
+        make_general_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject)
+
     elif subject == 2:
-        make_worker_report(df, monthly, subject_dict[subject], subject_dict, selected_month)
+
         report_subject = "Worker"
+
+        now_dt, report_timeframe, report_title, report_topic \
+            = get_report_parameters(df, monthly, subject, subject_dict, selected_month, report_subject)
+
+        make_report_dirs(report_title)
+
+        make_worker_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject)
+
     elif subject == 3:
-        make_batch_report(df, monthly, subject_dict[subject], subject_dict, selected_month)
         report_subject = "Batch"
+
+        now_dt, report_timeframe, report_title, report_topic \
+            = get_report_parameters(df, monthly, subject, subject_dict, selected_month, report_subject)
+
+        make_report_dirs(report_title)
+
+        make_batch_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject)
+
     elif subject == 4:
-        make_product_report(df, monthly, subject_dict[subject], subject_dict, selected_month)
-    elif subject == 5:
         report_subject = "Product"
-        make_task_report(df, monthly, subject_dict[subject], subject_dict, selected_month)
+
+        now_dt, report_timeframe, report_title, report_topic \
+            = get_report_parameters(df, monthly, subject, subject_dict, selected_month, report_subject)
+
+        make_report_dirs(report_title)
+
+        make_product_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject)
+
+    elif subject == 5:
+        report_subject = "Task"
+
+        now_dt, report_timeframe, report_title, report_topic \
+            = get_report_parameters(df, monthly, subject, subject_dict, selected_month, report_subject)
+
+        make_report_dirs(report_title)
+
+        make_task_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject)
+
+
     else:
         print(f"Received subject no. {subject}. Invalid")
         return
 
 
+def get_report_parameters(df, monthly, subject, subject_dict, selected_month, report_subject):
 
-def make_general_report(df, monthly, subject, subject_dict, selected_month):
+    now_dt = f"{datetime.datetime.now(tz=None).strftime('%S%H%M%j%Y')}"
 
-    first_page = generate_html_template(monthly, subject, subject_dict, selected_month)
+
+    if monthly:
+        # df = df.groupby([pd.Grouper(key='Date', freq='M')]).get_group(selected_month)
+        report_timeframe = f"For_{str(selected_month).split('-')[0]}-{str(selected_month).split('-')[1]}"
+    else:
+        report_timeframe = "Total_to_Date"
+
+    report_topic = subject_dict[subject]
+
+    report_title = f"{report_timeframe}_{report_subject}_Stats_Report_{now_dt}"
+
+    return now_dt, report_timeframe, report_title, report_topic
+
+
+def make_general_report(df, monthly, report_topic, subject_dict, selected_month, report_subject, report_title):
+
+    first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
 
     table_list = []
     table_list.append(write_table_to_html(df))
@@ -64,38 +101,72 @@ def make_general_report(df, monthly, subject, subject_dict, selected_month):
 
 
 
-def make_product_report(df, monthly, subject, subject_dict, selected_month):
+def make_product_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
 
-   print('x')
+    first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
 
+    table_list = []
+    table_list.append(write_table_to_html(df))
 
-def make_task_report(df, monthly, subject, subject_dict, selected_month):
-
-   print('x')
-
-
-def make_batch_report(df, monthly, subject, subject_dict, selected_month):
-
-   print('x')
+    with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
+        out_file.write(first_page)
+        out_file.write(table_list[0])
 
 
-def make_worker_report(df, monthly, subject, subject_dict, selected_month):
+def make_task_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
 
-   print('x')
+    first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
+
+    table_list = []
+    table_list.append(write_table_to_html(df))
+
+    with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
+        out_file.write(first_page)
+        out_file.write(table_list[0])
 
 
-def generate_html_template(monthly, subject, subject_dict, selected_month):
+def make_batch_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
+
+    first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
+
+    table_list = []
+    table_list.append(write_table_to_html(df))
+
+    with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
+        out_file.write(first_page)
+        out_file.write(table_list[0])
+
+
+def make_worker_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
+
+    first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
+
+    table_list = []
+    table_list.append(write_table_to_html(df))
+
+    with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
+        out_file.write(first_page)
+        out_file.write(table_list[0])
+
+
+def generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject):
 
     if monthly:
-        timeframe = f"For {selected_month}"
+        timeframe = f"For {selected_month[-5:-3]}-{selected_month[:4]}"
     else:
         timeframe = f"Total Statistics to Date\n(starting on 06-22)"
 
-
-    html_template = f"<h1>{report_subject} Stats Report</h1>\n"\
-                    f"<h1>{timeframe}</h1>\n"\
-                    f"<h3> Generated: " \
-                    f"{datetime.datetime.now(tz=None).strftime('%m/%d/%Y, %H:%M:%S')}"
+    if report_topic == "General":
+        html_template = f"<h1>{report_subject} Stats Report</h1>\n"\
+                        f"<h2>{timeframe}</h2>\n"\
+                        f"<h3> Generated: " \
+                        f"{datetime.datetime.now(tz=None).strftime('%m/%d/%Y, %H:%M:%S')}"
+    else:
+        html_template = f"<h1>{report_subject} Stats Report</h1>\n" \
+                        f"<h1>Subject: {report_topic}</h1>"\
+                        f"<h2>{timeframe}</h2>\n"\
+                        f"<h3> Generated: " \
+                        f"{datetime.datetime.now(tz=None).strftime('%m/%d/%Y, %H:%M:%S')}"
 
     return html_template
 
@@ -110,3 +181,12 @@ def create_pdf_from_html(out_html_path_list, out_pdf_path):
 
     pdfkit.from_file(out_html_path_list, out_pdf_path)
 
+
+def make_report_dirs(report_title):
+    # Parent Folder path
+    if not os.path.isdir("./Generated_Reports/"):
+        os.mkdir("./Generated_Reports/")
+
+    # Report directory containing html files w/ data tables and final report
+    if not os.path.isdir(f"./Generated_Reports/{report_title}/"):
+        os.mkdir(f"./Generated_Reports/{report_title}/")
