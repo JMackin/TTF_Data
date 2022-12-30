@@ -88,11 +88,12 @@ def get_report_parameters(df, monthly, subject, subject_dict, selected_month, re
     return now_dt, report_timeframe, report_title, report_topic
 
 
-def make_general_report(df, monthly, report_topic, subject_dict, selected_month, report_subject, report_title):
+def make_product_report(df, monthly, report_topic, subject_dict, selected_month, report_subject, report_title):
 
     first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
 
     table_list = []
+
     table_list.append(write_table_to_html(df))
 
     with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
@@ -101,11 +102,36 @@ def make_general_report(df, monthly, report_topic, subject_dict, selected_month,
 
 
 
-def make_product_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
+def make_general_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
 
     first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
 
     table_list = []
+
+    if monthly:
+        df_list = \
+            [
+                dan.total_labor_hours_in_given_month(df, selected_month),
+                dan.total_hours_worked_by_task_in_given_month(df, selected_month),
+                dan.total_labor_hours_per_worker_in_given_month(df, selected_month),
+                dan.total_units_for_all_products_in_given_month(df, selected_month),
+                dan.total_hours_and_units_per_bid_in_given_month(df, selected_month),
+                dan.avg_rate_per_task_in_given_month(df, selected_month),
+                dan.workers_ranked_by_total_efficiency_in_given_month(df, selected_month)
+            ]
+    else:
+        df_list = \
+            [   # LABOR
+                dan.total_labor_hours_by_month(df),
+                dan.total_hours_worked_by_task_per_month(df),
+                dan.total_labor_hours_per_worker_by_month(df),
+                dan.total_units_by_month_for_all_products(df),
+                dan.total_hours_and_units_per_bid_per_month(df),
+                # EFFICIENCY
+                dan.avg_rate_per_task_by_month(df),
+                dan.workers_ranked_by_total_efficiency(df),
+             ]
+
     table_list.append(write_table_to_html(df))
 
     with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
@@ -166,7 +192,8 @@ def generate_html_template(monthly, report_topic, subject_dict, selected_month, 
                         f"<h1>Subject: {report_topic}</h1>"\
                         f"<h2>{timeframe}</h2>\n"\
                         f"<h3> Generated: " \
-                        f"{datetime.datetime.now(tz=None).strftime('%m/%d/%Y, %H:%M:%S')}"
+                        f"{datetime.datetime.now(tz=None).strftime('%m/%d/%Y, %H:%M:%S')}"\
+                        f"<br><br>"
 
     return html_template
 
