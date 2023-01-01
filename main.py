@@ -472,9 +472,11 @@ class MainWindow(QMainWindow):
     def test_button_click(self):
 
 
-        #makerep.main(df, self.monthly, self.selected_subject, self.selected_subject_dict, self.selected_month_group)
+        makerep.main(df, self.monthly, self.selected_subject, self.selected_subject_dict, self.selected_month_group)
 
-        print(dan.avg_rate_per_task_in_given_month(df, "2022-07-31"))
+        # print(dan.distribution_of_bid_among_products_for_given_month(df, "2022-07-31"))
+
+        # print(dan.avg_rate_per_task_in_given_month(df, "2022-07-31"))
         #  print(dan.total_labor_hours_per_worker_by_month(df))
 
         # Functionality to be tested...

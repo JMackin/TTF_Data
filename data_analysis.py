@@ -95,17 +95,66 @@ def distribution_of_bid_among_products(df, bid):
     return distribution_among_products
 
 
-def distribution_of_ea_bid_among_products_per_month(df, bid):
+def distribution_of_ea_bid_among_products_for_given_month(df, given_month):
 
-    df = df[df["BatchID"] == bid]
-    total_units_per_product_for_bid_df = total_amount_by_product_for_bid(df, bid)
-    total_units_df = total_units_processed_for_bid(df, bid)
-    total_units = total_units_df.iloc[0]
+    df = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'], group_keys=True)['Units'].agg('sum')
 
-    distribution_among_products = total_units_per_product_for_bid_df.div(total_units)
-    distribution_among_products = distribution_among_products * 100
+    df = df.groupby(['Date']).get_group(given_month)
 
-    return distribution_among_products
+    return df
+
+def distribution_of_one_bid_among_products_for_given_month(df, bid, given_month):
+
+    df = df[df['BatchID'] == bid]
+
+    df = df.groupby([pd.Grouper(key='Date', freq='M'), 'Product'], group_keys=True)['Units'].agg('sum')
+
+    df = df.groupby(['Date']).get_group(given_month)
+
+    return df
+
+def distribution_of_ea_bid_among_products_per_month(df):
+
+    df = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'], group_keys=True)['Units'].agg('sum')
+
+
+    return df
+
+
+def percentage_distribution_of_ea_bid_among_products_per_month(df):
+
+    df_1 = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'], group_keys=True)['Units'].agg('sum')
+
+    df_2 = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID'], group_keys=True)['Units'].agg('sum')
+
+    df_perc = df_1.groupby(['Date'], group_keys=False)\
+        .apply(lambda x: x.div(df_2) * 100)
+
+    df_perc = df_perc.to_frame().dropna()
+
+
+    # df = df.groupby([pd.Grouper(key='Date', freq='M'), 'BatchID', 'Product'], group_keys=True).apply(lambda x: x)
+
+    # dist_df_list = []
+    #
+    # for group in df.groupby(['Date']).groups:
+    #
+    #     df_group = dist_df_list.append(df.groupby(['Date']).get_group(group))
+    #
+    #     for bid in df_group:
+    #
+    #
+    #
+    #         total_units_per_product_for_bid_df = total_amount_by_product_for_bid(df, bid)
+    #         total_units_df = total_units_processed_for_bid(df, bid)
+    #         total_units = total_units_df.iloc[0]
+    #
+    #     distribution_among_products = total_units_per_product_for_bid_df.div(total_units)
+    #     distribution_among_products = distribution_among_products * 100
+    #
+    # return distribution_among_products
+
+    return df_perc
 
 
 def avg_rate_per_month_for_bid_by_product(df, bid):
