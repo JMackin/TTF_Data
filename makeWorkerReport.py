@@ -162,6 +162,9 @@ def make_general_report(df, monthly, report_topic, subject_dict, selected_month,
         for stat_table in table_list:
             out_file.write(stat_table)
 
+    create_pdf_from_html(f"./Generated_Reports/{report_title}/{report_title}.html",
+                         f"./Generated_Reports/{report_title}/{report_title}.pdf")
+
 def make_task_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
 
     first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)

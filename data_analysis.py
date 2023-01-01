@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 
 import re
@@ -29,7 +31,12 @@ def clean_df():
     worker_rate = df['Time'].map(lambda x: x.total_seconds())
     df['Rate'] = df['Units'].div((worker_rate) / 60)
 
+    df = df.dropna()
+    df['Rate'] = df['Rate'].dropna()
+    df = df[df['Rate'] != math.inf]
+
     df.to_parquet('record_data/total_data.parquet')
+    df.to_csv('record_data/cleaned_total.csv')
 
 
 def main():
