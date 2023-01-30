@@ -128,7 +128,9 @@ class MainWindow(QMainWindow):
         self.month_input.setDate(QDate.currentDate())
         self.month_input.\
             setDateRange(QDate(2022, 5, 31),
-                         QDate(QDate.currentDate().year(), QDate.currentDate().month(), QDate.currentDate().daysInMonth()))
+                         #TODO: handle new year
+                         #QDate(QDate.currentDate().year(), QDate.currentDate().month(), QDate.currentDate().daysInMonth())
+                         QDate(2022, 12, 31))
         self.month_input.setDisplayFormat('MMM yy')
 
         month = self.month_input.date().month()

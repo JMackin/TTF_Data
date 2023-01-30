@@ -162,19 +162,66 @@ def make_general_report(df, monthly, report_topic, subject_dict, selected_month,
         for stat_table in table_list:
             out_file.write(stat_table)
 
-    create_pdf_from_html(f"./Generated_Reports/{report_title}/{report_title}.html",
-                         f"./Generated_Reports/{report_title}/{report_title}.pdf")
+   #create_pdf_from_html(f"./Generated_Reports/{report_title}/{report_title}.html",
+                        # f"./Generated_Reports/{report_title}/{report_title}.pdf")
+
 
 def make_task_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
 
     first_page = generate_html_template(monthly, report_topic, subject_dict, selected_month, report_subject)
 
     table_list = []
-    table_list.append(write_table_to_html(df))
+
+    if monthly:
+        df_list = \
+            [
+                # "<h4></h4>",
+                "<h4>Total Labor hours worked for task among all workers</h4>",
+                dan.total_labor_hours_for_task_in_given_month(df, selected_month, report_topic),
+                "<h4>Average work rate (units per min) for given task</h4>",
+                dan.avg_rate_for_task_in_given_month(df, selected_month, report_topic),
+                "<h4>Average work rate (units per min) for given task by worker</h4>",
+                dan.rate_for_task_for_ea_worker_in_given_month(df, selected_month, report_topic),
+                "<h4>Totals units completed for the given task by worker</h4>",
+                dan.total_units_per_worker_for_task_in_given_month(df, selected_month, report_topic),
+                "<h4>Totals hours/units completed for the given task by BatchID</h4>",
+                dan.total_hours_and_units_per_bid_for_task_in_given_month(df, selected_month, report_topic)
+            ]
+    else:
+        df_list = \
+            [  # LABOR
+                "<h4>Total Labor hours among all workers and tasks</h4>",
+                dan.total_labor_hours_by_month(df),
+                "<h4>Total Labor hours for each task among all workers</h4>",
+                dan.total_hours_worked_by_task_per_month(df),
+                "<h4>Total labor hours for each worker</h4>",
+                dan.total_labor_hours_per_worker_by_month(df),
+                "<h4>Total units completed for each product type</h4>",
+                dan.total_units_by_month_for_all_products(df),
+                "<h4>Total units completed for each batch ID divided by each product type</h4>",
+                dan.distribution_of_ea_bid_among_products_per_month(df),
+                "<h4>Each Batch ID divided by product type <b>as a percentage</b> of the total batch</h4>",
+                dan.percentage_distribution_of_ea_bid_among_products_per_month(df),
+                "<h4>Total labor hours and units completed for each batch ID</h4>",
+                dan.total_hours_and_units_per_bid_per_month(df),
+                # EFFICIENCY
+                "<h4>Average work rate (units per min) for each task</h4>",
+                dan.avg_rate_per_task_by_month(df),
+                "<h4>Workers ranked by average work rate (units per min) for all tasks</h4>",
+                dan.workers_ranked_by_total_efficiency(df),
+            ]
+
+
+    table_list = [write_table_to_html(func_df) for func_df in df_list]
 
     with open(f"./Generated_Reports/{report_title}/{report_title}.html", "a+") as out_file:
         out_file.write(first_page)
-        out_file.write(table_list[0])
+
+        for stat_table in table_list:
+            out_file.write(stat_table)
+
+    #create_pdf_from_html(f"./Generated_Reports/{report_title}/{report_title}.html",
+                       #  f"./Generated_Reports/{report_title}/{report_title}.pdf")
 
 
 def make_batch_report(df, monthly, report_topic, subject_dict, selected_month, report_title, report_subject):
